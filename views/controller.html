@@ -1,0 +1,153 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>IoT Controller</title>
+    <link rel="stylesheet" type="text/css" href="./controller.css">
+    <style type="text/css" media="screen">
+      .indicator {
+        display: inline-block;
+        width:15px;
+        height:15px;
+        border-radius: 50%;
+      }
+      .red {
+        background-color: red;
+      }
+      .green {
+        background-color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Message in a Bottle</h1>
+    <h2>8x16 LED Matrix Massage controller</h2>
+    <div id="controll_form">
+      <form name="controller_form" action="">
+        <div>
+          <label for="msg">Type your massage:</label>
+          <input type="text" id="text" name="textbox" value="Massage in a Bottle" maxlength="140" />
+          <input  type="button" value="      send      " onclick="send_msg()" />
+        </div>
+        <div id="delay">
+          <label>Scroll Speed:</label>
+          <input id="delay-level" name ="delay" type="range" min="0" max="200" value="50"/>
+          <small id="delay-guide">50ms</small>
+        </div>
+        <div>
+          <label>Scroll Direction:</label>
+          <input type="radio" name="direction" value="1" checked="checked">↑
+          <input type="radio" name="direction" value="2">→
+          <input type="radio" name="direction" value="3">↓
+          <input type="radio" name="direction" value="4">←
+        </div>
+        <div id="brightness">
+          <label>Brightness:</label>
+          <input id="brightness-level" name="brightness" type="range" min="0" max="12" value="12"/>
+          <small id="brightness-guide">100%</small>
+        </div>
+      </form>
+    </div>
+
+    <div id="echoback">
+      <p>
+        Message echo back :<br />
+        <span id='rcv'>(none)</span>
+      </p>
+      <div>
+        PI server : <div id="server" class="indicator red">&nbsp</div>
+      </div>
+      <div>
+        Bottle : <div id="bottle_client" class="indicator red"></div>
+      </div>
+    </div>
+
+    <script src="http://{{addr}}:{{port}}/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+
+      /*
+      * DOM element selectors / event listeners
+      */
+      var b_level = document.getElementById('brightness-level');
+      var b_guide = document.getElementById('brightness-guide');
+      b_level.oninput = function() {
+        var level = this.value;
+        // Brightness levels are 0 - 12 so convert to %
+        b_guide.innerText = Math.round((100/12) * level) + '%';
+        send_msg();
+      };
+
+      var d_level = document.getElementById('delay-level');
+      var d_guide = document.getElementById('delay-guide');
+      d_level.oninput = function() {
+        var level = this.value;
+        d_guide.innerText = level + 'ms';
+        send_msg();
+      };
+
+      var direction = document.getElementsByName('direction');
+      for (var i = 0; i < direction.length; i++){
+        direction[i].onchange = function(){
+          send_msg()
+        }
+      }
+
+      /*
+      * Setup
+      */
+
+      //1. specify domain and port of your socket.io server
+      var socket = io.connect('http://{{addr}}:{{port}}');
+
+      //2. Setup socket handler for receiving message
+      //   once message recived, change state of this website
+
+      socket.on('echo', function (data) {
+        var message = document.getElementById('rcv');
+        message.innerHTML = data.msg;
+      });
+
+      //3. Setup function to emit messages
+      //   this message is broadcasted to your client.js via server.js
+      function send_msg(){
+        var msg = controller_form.textbox.value;  //テキストエリアの値を取得
+        var brt = controller_form.brightness.value;
+        var dly = controller_form.delay.value;
+        var drc = controller_form.direction.value;
+        socket.emit('msg',{
+          msg:msg,
+          brt:brt,
+          dly:dly,
+          drc:drc
+        });
+      }
+
+      /*
+      * Socket connection controller
+      * buttons are disabled when socket is disconnected
+      */
+      socket.on('connect', function () {
+        // when controller is connected to server
+        document.getElementById('server').style.backgroundColor = 'green'
+        socket.emit('controller_ready')
+      });
+
+      socket.on('bottle_connected', function () {
+        // when bottle client is connected
+        document.getElementById('bottle_client').style.backgroundColor = 'green'
+      });
+
+      socket.on('bottle_disconnected', function () {
+        // when bottle client is disconnected
+        document.getElementById('bottle_client').style.backgroundColor = 'red'
+      });
+
+      socket.on('disconnect', function (client) {
+        // when controller is disconnected from server
+        document.getElementById('server').style.backgroundColor = 'red'
+        document.getElementById('bottle_client').style.backgroundColor = 'gray'
+      });
+
+    </script>
+  </body>
+</html>
