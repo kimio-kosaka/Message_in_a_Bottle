@@ -5,11 +5,6 @@
     <title>Message in a Bottle Controller</title>
     <link rel="stylesheet" type="text/css" href="./controller.css">
     <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1'/>
-    <style>
-
-
-
-    </style>
   </head>
   <body>
     <h1>Message in a Bottle Controller</h1>
@@ -17,7 +12,7 @@
       <form name="controller_form" action="">
         <div>
           <label for="msg">Type your massage:</label>
-          <input type="text" id="text" name="textbox" value="Message in a Bottle" maxlength="140" />
+          <input type="text" id="text" name="textbox" placeholder="Message in a Bottle" maxlength="140" />
           <button id="send" type="button" onclick="send_msg('text')" >send</button>
           <!-- <input  type="button" value="send" onclick="send_msg()" /> -->
         </div>
@@ -38,10 +33,10 @@
         <div>
           <label>Scroll Direction:</label>
           <div class="switch-field">
-            <input type="radio" id="switch_left" name="direction" value="1" checked/>
-            <label for="switch_left">👈</label>
-            <input type="radio" id="switch_right" name="direction" value="3" />
-            <label for="switch_right">👉</label>
+            <input type="radio" name="direction" id="dir_1" value="1" checked/>
+            <label for="dir_1">👈</label>
+            <input type="radio" name="direction" id="dir_3"value="3" />
+            <label for="dir_3">👉</label>
           </div>
         </div>
       </form>
@@ -70,18 +65,24 @@
       var b_guide = document.getElementById('brightness-guide');
       b_level.oninput = function() {
         var level = this.value;
-        // Brightness levels are 0 - 12 so convert to %
-        b_guide.innerText = Math.round((100/12) * level) + '%';
+        updateBrightnessGuide(level)
         send_msg('brightness');
       };
+      function updateBrightnessGuide (level){
+        // Brightness levels are 0 - 12 so convert to %
+        b_guide.innerText = Math.round((100/12) * level) + '%';
+      }
 
       var d_level = document.getElementById('delay-level');
       var d_guide = document.getElementById('delay-guide');
       d_level.oninput = function() {
         var level = this.value;
-        d_guide.innerText = level + 'ms';
+        updateDelayGuide(level)
         send_msg('delay');
       };
+      function updateDelayGuide (level){
+        d_guide.innerText = level + 'ms';
+      }
 
       var direction = document.getElementsByName('direction');
       for (var i = 0; i < direction.length; i++){
@@ -138,6 +139,22 @@
       socket.on('bottle_disconnected', function () {
         // when bottle client is disconnected
         document.getElementById('bottle_client').style.backgroundColor = 'red'
+      });
+
+      socket.on('msg', function (msg) {
+        switch (msg.type) {
+          case 'brightness':
+            b_level.value = msg.data;
+            updateBrightnessGuide(msg.data);
+            break;
+          case 'delay':
+            d_level.value = msg.data;
+            updateDelayGuide(msg.data);
+            break;
+          case 'direction':
+            document.getElementById('dir_'+msg.data).checked = true;
+            break;
+        }
       });
 
       socket.on('disconnect', function (client) {
