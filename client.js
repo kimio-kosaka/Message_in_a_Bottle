@@ -3,7 +3,7 @@ var EtherPortClient = require("etherport-client").EtherPortClient;
 var Firmata = require("firmata");
 var five = require("johnny-five");
 
-var Matrix = require('./8x16matrix_m.js');
+var Matrix = require('./8x16matrix.js');
 
 // twitter API
 var twitter = require('twitter');
@@ -38,12 +38,22 @@ board.on("ready", function() {
   /*
   * revive message from controller
   */
-  socket.on('msg', function(data){
-    matrix.setBrightness(data.brt);
-    matrix.setDelay(data.dly);
-    matrix.setDirection(data.drc);
-    matrix.setMassage(data.msg);
-    socket.emit('echo',{msg:data.msg});
+  socket.on('msg', function(msg){
+    switch (msg.type) {
+      case 'text':
+        matrix.setMassage(msg.data);
+        socket.emit('echo', msg.data);
+        break;
+      case 'brightness':
+        matrix.setBrightness(msg.data);
+        break;
+      case 'delay':
+        matrix.setDelay(msg.data);
+        break;
+      case 'direction':
+        matrix.setDirection(msg.data);
+        break;
+    }
   });
 
   /*
@@ -66,7 +76,7 @@ board.on("ready", function() {
             text = text.replace(/&lt;/g,"<").replace(/&gt;/g,">");
             text = '@' + id + '> ' + text;
             matrix.setMassage(text); // send message to device
-
+            socket.emit('echo',text);
             // var msg = '@' + id + ' recived your msg';
             //client.updateStatus(msg, function (data) {
             //  console.log(data);

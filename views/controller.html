@@ -18,7 +18,7 @@
         <div>
           <label for="msg">Type your massage:</label>
           <input type="text" id="text" name="textbox" value="Message in a Bottle" maxlength="140" />
-          <button id="send" type="button" onclick="send_msg()" >send</button>
+          <button id="send" type="button" onclick="send_msg('text')" >send</button>
           <!-- <input  type="button" value="send" onclick="send_msg()" /> -->
         </div>
         <div id="delay">
@@ -56,7 +56,7 @@
         Bottle : <div id="bottle_client" class="indicator red"></div>
       </div>
       <p>
-        Message echo back<br><span id='rcv'>(none)</span>
+        Current message<br><span id='rcv'>(none)</span>
       </p>
     </div>
 
@@ -72,7 +72,7 @@
         var level = this.value;
         // Brightness levels are 0 - 12 so convert to %
         b_guide.innerText = Math.round((100/12) * level) + '%';
-        send_msg();
+        send_msg('brightness');
       };
 
       var d_level = document.getElementById('delay-level');
@@ -80,13 +80,13 @@
       d_level.oninput = function() {
         var level = this.value;
         d_guide.innerText = level + 'ms';
-        send_msg();
+        send_msg('delay');
       };
 
       var direction = document.getElementsByName('direction');
       for (var i = 0; i < direction.length; i++){
         direction[i].onchange = function(){
-          send_msg()
+          send_msg('direction')
         }
       }
 
@@ -102,21 +102,22 @@
 
       socket.on('echo', function (data) {
         var message = document.getElementById('rcv');
-        message.innerHTML = data.msg;
+        message.innerHTML = data;
       });
 
       //3. Setup function to emit messages
       //   this message is broadcasted to your client.js via server.js
-      function send_msg(){
-        var msg = controller_form.textbox.value;  //テキストエリアの値を取得
-        var brt = controller_form.brightness.value;
-        var dly = controller_form.delay.value;
-        var drc = controller_form.direction.value;
-        socket.emit('msg',{
-          msg:msg,
-          brt:brt,
-          dly:dly,
-          drc:drc
+      function send_msg(type){
+        var values = {
+          text: controller_form.textbox.value,
+          brightness: ontroller_form.brightness.value,
+          delay: controller_form.delay.value,
+          drection: controller_form.direction.value
+        }
+
+        socket.emit('msg', {
+          type: type
+          data: values[type]
         });
       }
 
