@@ -110,11 +110,10 @@
       function send_msg(type){
         var values = {
           text: controller_form.textbox.value,
-          brightness: ontroller_form.brightness.value,
+          brightness: controller_form.brightness.value,
           delay: controller_form.delay.value,
-          drection: controller_form.direction.value
+          direction: controller_form.direction.value
         }
-
         socket.emit('msg', {
           type: type,
           data: values[type]
