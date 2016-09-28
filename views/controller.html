@@ -2,64 +2,62 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>IoT Controller</title>
+    <title>Message in a Bottle Controller</title>
     <link rel="stylesheet" type="text/css" href="./controller.css">
-    <style type="text/css" media="screen">
-      .indicator {
-        display: inline-block;
-        width:15px;
-        height:15px;
-        border-radius: 50%;
-      }
-      .red {
-        background-color: red;
-      }
-      .green {
-        background-color: green;
-      }
+    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1'/>
+    <style>
+
+
+
     </style>
   </head>
   <body>
-    <h1>Message in a Bottle</h1>
-    <h2>8x16 LED Matrix Massage controller</h2>
+    <h1>Message in a Bottle Controller</h1>
     <div id="controll_form">
       <form name="controller_form" action="">
         <div>
           <label for="msg">Type your massage:</label>
-          <input type="text" id="text" name="textbox" value="Massage in a Bottle" maxlength="140" />
-          <input  type="button" value="      send      " onclick="send_msg()" />
+          <input type="text" id="text" name="textbox" value="Message in a Bottle" maxlength="140" />
+          <button id="send" type="button" onclick="send_msg()" >send</button>
+          <!-- <input  type="button" value="send" onclick="send_msg()" /> -->
         </div>
         <div id="delay">
-          <label>Scroll Speed:</label>
-          <input id="delay-level" name ="delay" type="range" min="0" max="200" value="50"/>
-          <small id="delay-guide">50ms</small>
+          <label>
+            Scroll Speed:
+            <small id="delay-guide" class="slider-guide">50ms</small>
+          </label>
+          <input id="delay-level" class="slider" name ="delay" type="range" min="0" max="200" value="50"/>
+        </div>
+        <div id="brightness">
+          <label>
+            Brightness:
+            <small id="brightness-guide" class="slider-guide">100%</small>
+          </label>
+          <input id="brightness-level" class="slider" name="brightness" type="range" min="0" max="12" value="12"/>
         </div>
         <div>
           <label>Scroll Direction:</label>
-          <input type="radio" name="direction" value="1" checked="checked">↑
-          <input type="radio" name="direction" value="2">→
-          <input type="radio" name="direction" value="3">↓
-          <input type="radio" name="direction" value="4">←
-        </div>
-        <div id="brightness">
-          <label>Brightness:</label>
-          <input id="brightness-level" name="brightness" type="range" min="0" max="12" value="12"/>
-          <small id="brightness-guide">100%</small>
+          <div class="switch-field">
+            <input type="radio" id="switch_left" name="direction" value="1" checked/>
+            <label for="switch_left">👈</label>
+            <input type="radio" id="switch_right" name="direction" value="3" />
+            <label for="switch_right">👉</label>
+          </div>
         </div>
       </form>
     </div>
 
-    <div id="echoback">
-      <p>
-        Message echo back :<br />
-        <span id='rcv'>(none)</span>
-      </p>
-      <div>
+    <div id="debug">
+      <p><b>debugging console</b></p>
+      <div class="indicator-container">
         PI server : <div id="server" class="indicator red">&nbsp</div>
       </div>
-      <div>
+      <div class="indicator-container">
         Bottle : <div id="bottle_client" class="indicator red"></div>
       </div>
+      <p>
+        Message echo back<br><span id='rcv'>(none)</span>
+      </p>
     </div>
 
     <script src="http://{{addr}}:{{port}}/socket.io/socket.io.js"></script>
